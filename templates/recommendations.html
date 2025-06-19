@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="max-w-3xl mx-auto p-4" aria-labelledby="titulo-recomendaciones">
+    <header>
+        <h2 id="titulo-recomendaciones" class="text-3xl font-bold mb-8 text-green-900 text-center">Recomendaciones Personalizadas</h2>
+    </header>
+    <section aria-label="Lista de recomendaciones">
+        <div class="space-y-6">
+            {% if recommendations %}
+                {% for rec in recommendations %}
+                <article class="p-6 rounded-lg shadow-md border flex flex-col gap-2
+                    {% if rec.priority == 'Alta' %}bg-red-100 border-red-300{% elif rec.priority == 'Media' %}bg-yellow-100 border-yellow-300{% else %}bg-green-100 border-green-300{% endif %}" aria-label="Recomendación {{ rec.category }}">
+                    <h3 class="font-semibold text-lg text-green-900">{{ rec.category }}</h3>
+                    <p class="text-gray-800">{{ rec.text }}</p>
+                    <span class="text-sm text-gray-600">Prioridad: <span class="font-bold">{{ rec.priority }}</span></span>
+                </article>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-gray-500 py-8">No hay recomendaciones disponibles.</div>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+window.onload = function() {
+    const error = {{ error|default('')|tojson }};
+    const success = {{ success_message|default('')|tojson }};
+    if (error && error !== 'None') {
+        alertManager.show(error, 'error');
+    }
+    if (success && success !== 'None') {
+        alertManager.show(success, 'success');
+    }
+};
+</script>
+{% endblock %}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EnerVirgil - Soluciones inteligentes de gestión energética basada en IoT.">
+    <title>EnerVirgil - Gestión Energética Inteligente</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='Images/Foto_pantalla_inicio.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='Images/Foto_pantalla_inicio.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='Images/favicon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .logo-accent {
+            color: #22c55e;
+        }
+        .main-bg {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 40%, #4ade80 100%);
+            min-height: 100vh;
+        }
+        .nav-bg {
+            background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+        }
+        .card-bg {
+            background: linear-gradient(135deg, #f0fdf4 60%, #bbf7d0 100%);
+        }
+    </style>
+</head>
+<body class="main-bg">
+    <div id="alert-container" class="fixed top-4 left-0 w-full flex justify-center z-50"></div>
+    <header class="w-full z-40 nav-bg shadow-md border-b border-green-200">
+        <nav class="container mx-auto flex justify-between items-center py-3 px-4" role="navigation" aria-label="Menú principal">
+            <div class="flex items-center gap-2">
+                <span class="flex items-center gap-2 text-2xl font-bold tracking-tight select-none text-white">
+                    <img src="{{ url_for('static', filename='Images/Foto_pantalla_inicio.png') }}" alt="Logo EnerVirgil" class="h-8 w-8 object-contain inline-block align-middle" style="margin-right: 0.25rem;">
+                    <span><span class="logo-accent">E</span><span>ner</span><span class="logo-accent">V</span><span>irgil</span></span>
+                </span>
+                <span class="ml-2 text-sm text-green-100 font-medium hidden sm:inline">Gestión Energética Inteligente</span>
+            </div>
+            <ul class="flex space-x-4 items-center">
+            {% if 'username' in session %}
+                <li><a href="{{ url_for('dashboard') }}" class="nav-link font-medium text-white hover:text-green-100 transition">Panel</a></li>
+                <li><a href="{{ url_for('dispositivos') }}" class="nav-link font-medium text-white hover:text-green-100 transition">Dispositivos</a></li>
+                                <li><a href="{{ url_for('recommendations') }}" class="nav-link font-medium text-white hover:text-green-100 transition">Recomendaciones</a></li>
+                <li><a href="{{ url_for('logout') }}" class="nav-link font-medium text-red-100 hover:text-red-300 transition">Cerrar Sesión</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}" class="nav-link font-medium text-white hover:text-green-100 transition">Iniciar Sesión</a></li>
+            {% endif %}
+            </ul>
+        </nav>
+    </header>
+    <main class="container mx-auto pt-28 p-4 min-h-[calc(100vh-6rem)]">
+        {% block content %}
+        {% endblock %}
+    </main>
+    {% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    {% endblock %}
+    <script>
+        class AlertManager {
+            constructor() {
+                this.container = document.getElementById('alert-container');
+            }
+            show(message, type = 'error') {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `p-4 mb-4 text-white rounded-lg shadow-lg ${
+                    type === 'error' ? 'bg-red-500' : 'bg-green-500'
+                }`;
+                alertDiv.textContent = message;
+                this.container.appendChild(alertDiv);
+                setTimeout(() => {
+                    alertDiv.classList.add('opacity-0');
+                    setTimeout(() => alertDiv.remove(), 300);
+                }, 5000);
+            }
+        }
+        const alertManager = new AlertManager();
+        window.onload = () => {
+            const error = "{{ error|safe }}";
+            const success = "{{ success_message|safe }}";
+            if (error) {
+                alertManager.show(error, 'error');
+            }
+            if (success) {
+                alertManager.show(success, 'success');
+            }
+        };
+    </script>
+</body>
+</html>

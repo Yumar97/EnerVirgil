@@ -1,0 +1,53 @@
+🔧 CONFIGURACIÓN RÁPIDA DE GOOGLE OAUTH
+==========================================
+
+El mensaje "Google OAuth no está configurado" es normal. 
+Necesitas configurar las credenciales de Google.
+
+📋 OPCIÓN 1: CONFIGURACIÓN AUTOMÁTICA
+-------------------------------------
+1. Ejecuta: python setup_google_oauth.py
+2. Sigue las instrucciones paso a paso
+
+📋 OPCIÓN 2: CONFIGURACIÓN MANUAL RÁPIDA
+----------------------------------------
+1. Ejecuta: set_google_credentials.bat
+2. Ingresa tus credenciales cuando se solicite
+
+📋 OPCIÓN 3: CONFIGURACIÓN MANUAL
+---------------------------------
+1. Ve a: https://console.cloud.google.com/
+2. Crea un proyecto nuevo
+3. Habilita "Google+ API" o "Google People API"
+4. Ve a "APIs y servicios" > "Credenciales"
+5. Crea "ID de cliente OAuth 2.0"
+6. Configura:
+   - Tipo: Aplicación web
+   - URIs de origen autorizados: http://localhost:5000
+   - URIs de redirección: http://localhost:5000/auth/google/callback
+
+7. Copia las credenciales y ejecuta:
+   set GOOGLE_CLIENT_ID=tu_client_id_aqui
+   set GOOGLE_CLIENT_SECRET=tu_client_secret_aqui
+   python app.py
+
+🚀 PARA USAR SIN GOOGLE OAUTH
+-----------------------------
+Si no quieres configurar Google OAuth ahora:
+- La aplicación funciona perfectamente con login tradicional
+- Puedes registrarte y usar todas las funciones
+- Google OAuth es opcional
+
+✅ VERIFICAR CONFIGURACIÓN
+--------------------------
+Cuando esté configurado correctamente:
+- El mensaje amarillo desaparecerá
+- Aparecerá el botón "Iniciar sesión con Google"
+- Podrás usar ambos métodos de login
+
+💡 NOTAS IMPORTANTES
+-------------------
+- Las credenciales son gratuitas
+- Solo toma 5-10 minutos configurar
+- Es seguro y estándar de la industria
+- Mejora la experiencia del usuario

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: enervirgil
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --config gunicorn.conf.py app:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: False
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    autoDeploy: true
+    healthCheckPath: /
+    disk:
+      name: enervirgil-disk
+      mountPath: /opt/render/project/src
+      sizeGB: 1

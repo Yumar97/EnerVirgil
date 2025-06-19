@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex items-center justify-center min-h-[70vh]">
+    <div class="w-full max-w-md card-bg rounded-2xl shadow-2xl p-8 space-y-6 border border-blue-200">
+        <div class="flex flex-col items-center mb-6">
+            <h2 class="text-3xl font-semibold text-blue-900">Registro</h2>
+        </div>
+        <form method="POST" class="space-y-5" onsubmit="return validateForm()">
+            <div>
+                <label for="username" class="block text-sm font-medium text-blue-800">Nombre de Usuario</label>
+                <input type="text" id="username" name="username" required class="mt-1 w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-400 transition duration-200 bg-blue-50">
+            </div>
+            <div>
+                <label for="full_name" class="block text-sm font-medium text-blue-800">Nombre Completo</label>
+                <input type="text" id="full_name" name="full_name" required class="mt-1 w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-400 transition duration-200 bg-blue-50">
+            </div>
+            <div>
+                <label for="phone" class="block text-sm font-medium text-blue-800">Número de Teléfono</label>
+                <input type="text" id="phone" name="phone" required class="mt-1 w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-400 transition duration-200 bg-blue-50" pattern="\d*" title="Solo números" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+            </div>
+            <div>
+                <label for="dni" class="block text-sm font-medium text-blue-800">DNI (exactamente 8 dígitos)</label>
+                <input type="text" id="dni" name="dni" required class="mt-1 w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-400 transition duration-200 bg-blue-50" pattern="\d{8}" title="Debe contener exactamente 8 dígitos numéricos" maxlength="8" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8);">
+            </div>
+            <div>
+                <label for="receipt_number" class="block text-sm font-medium text-blue-800">Número de Recibo de Luz (6-8 dígitos)</label>
+                <input type="text" id="receipt_number" name="receipt_number" required class="mt-1 w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-400 transition duration-200 bg-blue-50" pattern="\d{6,8}" title="Debe contener entre 6 y 8 dígitos numéricos" maxlength="8" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8);">
+            </div>
+            <div class="relative">
+                <label for="password" class="block text-sm font-medium text-blue-800">Contraseña</label>
+                <input type="password" id="password" name="password" required class="mt-1 w-full px-4 py-3 border border-blue-200 rounded-lg pr-12 focus:ring-2 focus:ring-sky-400 focus:border-sky-400 transition duration-200 bg-blue-50">
+                <span class="absolute right-4 top-10 cursor-pointer text-blue-400 hover:text-blue-600" onclick="togglePassword('password')">👁️</span>
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-medium hover:from-green-600 hover:to-green-700 focus:ring-4 focus:ring-green-200 transition duration-200 shadow">Registrarse</button>
+        </form>
+        <p class="text-center text-sm text-blue-700">
+            ¿Ya tienes cuenta? <a href="{{ url_for('login') }}" class="text-sky-600 hover:text-blue-800 hover:underline">Inicia sesión</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    function validateForm() {
+        const phone = document.getElementById('phone').value;
+        const dni = document.getElementById('dni').value;
+        const receipt = document.getElementById('receipt_number').value;
+        if (!/^\d+$/.test(phone)) {
+            alertManager.show("El número de teléfono debe contener solo números.");
+            return false;
+        }
+        if (!/^\d{8}$/.test(dni)) {
+            alertManager.show("El DNI debe contener exactamente 8 dígitos numéricos.");
+            return false;
+        }
+        if (!/^\d{6,8}$/.test(receipt)) {
+            alertManager.show("El número de recibo debe contener entre 6 y 8 dígitos numéricos.");
+            return false;
+        }
+        return true;
+    }
+    function togglePassword(fieldId) {
+        const password = document.getElementById(fieldId);
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+    }
+    window.onload = function() {
+        const error = {{ error|default('')|tojson }};
+        const success = {{ success_message|default('')|tojson }};
+        if (error && error !== 'None') {
+            alertManager.show(error, 'error');
+        }
+        if (success && success !== 'None') {
+            alertManager.show(success, 'success');
+        }
+    };
+</script>
+{% endblock %}

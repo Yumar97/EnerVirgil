@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Completar Perfil - EnerVirgil{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="text-center">Completar Perfil</h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+                    
+                    <div class="alert alert-info">
+                        <strong>¡Bienvenido!</strong><br>
+                        Para acceder a todas las funciones de EnerVirgil, completa tu perfil con la información adicional.
+                        Estos datos son opcionales, pero te permitirán acceder a funciones como el monitoreo de consumo personalizado.
+                    </div>
+                    
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Número de Teléfono <span class="text-muted">(Opcional)</span></label>
+                            <input type="text" class="form-control" id="phone" name="phone" placeholder="Ej: 987654321">
+                            <div class="form-text">Solo números, sin espacios ni guiones</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="dni" class="form-label">DNI <span class="text-muted">(Opcional)</span></label>
+                            <input type="text" class="form-control" id="dni" name="dni" maxlength="8" placeholder="Ej: 12345678">
+                            <div class="form-text">8 dígitos numéricos</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="receipt_number" class="form-label">Número de Recibo de Luz <span class="text-muted">(Recomendado)</span></label>
+                            <input type="text" class="form-control" id="receipt_number" name="receipt_number" placeholder="Ej: 1234567">
+                            <div class="form-text">Entre 6 y 8 dígitos. Necesario para funciones de monitoreo personalizado</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Completar Perfil</button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Omitir por ahora</a>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4">
+                        <h6>¿Por qué necesitamos esta información?</h6>
+                        <ul class="small text-muted">
+                            <li><strong>Teléfono:</strong> Para notificaciones importantes sobre tu consumo energético</li>
+                            <li><strong>DNI:</strong> Para verificación de identidad en funciones avanzadas</li>
+                            <li><strong>Número de recibo:</strong> Para personalizar recomendaciones y análisis de consumo</li>
+                        </ul>
+                        <p class="small text-muted mt-2">
+                            <i class="fas fa-lock"></i> Tu información está protegida y solo se usa para mejorar tu experiencia en EnerVirgil.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

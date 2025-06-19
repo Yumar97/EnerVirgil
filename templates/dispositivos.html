@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="max-w-6xl mx-auto p-4" aria-labelledby="titulo-dispositivos">
+    <header>
+        <h2 id="titulo-dispositivos" class="text-3xl font-bold mb-6 text-green-900">Control de Dispositivos</h2>
+    </header>
+    <section class="bg-white p-6 rounded-lg shadow-lg mb-6" aria-labelledby="form-dispositivo">
+        <h3 id="form-dispositivo" class="font-bold text-lg text-green-800 mb-4">Registrar Nuevo Dispositivo</h3>
+        <p class="text-sm text-gray-600 mb-4">Ingresa la descripción y la IP del dispositivo para agregarlo al sistema.</p>
+        <form method="POST" action="{{ url_for('add_plug') }}" class="space-y-4">
+            <div>
+                <label for="device_description" class="block text-gray-700 font-medium">Descripción detallada del dispositivo:</label>
+                <input type="text" id="device_description" name="device_description" class="w-full p-2 border rounded-lg" placeholder="Ej: 55'' LG OLED evo AI C5 4K Smart TV 2025" required aria-describedby="ayuda-descripcion">
+                <p id="ayuda-descripcion" class="text-xs text-gray-500 mt-1">Incluye marca, modelo, año, tipo y cualquier dato relevante para obtener el consumo exacto (ejemplo: <span class='italic'>"Refrigeradora Samsung RT38K5930S8 2023 No Frost 380L"</span>).</p>
+            </div>
+            <div>
+                <label for="ip_address" class="block text-gray-700 font-medium">Dirección IP:</label>
+                <input type="text" id="ip_address" name="ip_address" class="w-full p-2 border rounded-lg" placeholder="Ej. 192.168.1.100" required>
+            </div>
+            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200">Registrar Dispositivo</button>
+        </form>
+    </section>
+    <section aria-labelledby="lista-dispositivos">
+        <h3 id="lista-dispositivos" class="text-lg font-semibold text-green-900 mb-4">Dispositivos Registrados</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% if devices %}
+                {% for device in devices %}
+                <article class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-opacity" aria-label="Dispositivo {{ device.name or 'Sin nombre' }}">
+                    <h4 class="font-bold text-lg text-green-900 mb-2">{{ device.name or 'Sin nombre' }}</h4>
+                    <p class="text-gray-600">Consumo: {{ device.consumption if device.consumption is defined else 'N/A' }} kWh</p>
+                    <p class="text-gray-600">Estado: {{ 'Encendido' if device.status else 'Apagado' }}</p>
+                    <p class="text-gray-600">IP: {{ device.ip_address if device.ip_address is defined and device.ip_address else 'No asignada' }}</p>
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="toggleDevice({{ device.id }}, 'on')" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200">Encender</button>
+                        <button onclick="toggleDevice({{ device.id }}, 'off')" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-200">Apagar</button>
+                    </div>
+                    <form method="POST" action="{{ url_for('delete_device') }}" class="mt-2">
+                        <input type="hidden" name="device_id" value="{{ device.id }}">
+                        <button type="submit" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200">Eliminar</button>
+                    </form>
+                    <div class="mt-2">
+                        <a href="{{ url_for('detalles_dispositivos', device_id=device.id) }}" class="text-green-700 hover:underline text-sm">Ver detalle &rarr;</a>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <div class="col-span-full text-center text-gray-500">No hay dispositivos registrados.</div>
+            {% endif %}
+        </div>
+    </section>
+</main>
+
+<script>
+    function toggleDevice(deviceId, action) {
+        fetch('/dispositivos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `device_id=${deviceId}&action=${action}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alertManager.show(data.message, 'success');
+                const statusText = document.querySelector(`[data-device-id="${deviceId}"]`);
+                if (statusText) {
+                    statusText.textContent = `Estado: ${action === 'on' ? 'Encendido' : 'Apagado'}`;
+                }
+                location.reload(); // Recargar para reflejar cambios de consumo
+            } else if (data.error) {
+                alertManager.show(data.error, 'error');
+            }
+        })
+        .catch(error => {
+            alertManager.show('Error al comunicarse con el servidor', 'error');
+            console.error('Error:', error);
+        });
+    }
+window.onload = function() {
+        const  error = {{ error|default('')|tojson }};
+        const success = {{ success_message|default('')|tojson }};
+        if (error && error !== 'None') {
+            alertManager.show(error, 'error');
+        }
+        if (success && success !== 'None') {
+            alertManager.show(success, 'success');
+        }
+    };
+</script>
+{% endblock %}

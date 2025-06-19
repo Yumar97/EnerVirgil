@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="max-w-4xl mx-auto p-4" aria-labelledby="titulo-detalles-dispositivos">
+    <header>
+        <h2 id="titulo-detalles-dispositivos" class="text-2xl font-bold text-green-900 mb-6">Detalles de Dispositivos</h2>
+    </header>
+    
+    <section class="mb-8">
+        <form id="form-seleccion-dispositivo" method="get" action="">
+            <label for="device_id" class="block text-gray-700 font-medium mb-2">Seleccionar Dispositivo:</label>
+            <select name="device_id" id="device_id" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-green-400 focus:border-green-400" required onchange="this.form.submit()">
+                <option value="" disabled {% if not selected_device_id %}selected{% endif %}>-- Selecciona un dispositivo --</option>
+                {% for device in devices %}
+                    <option value="{{ device.id }}" {% if selected_device_id and device.id == selected_device_id %}selected{% endif %}>{{ device.name }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </section>
+    
+    {% if detalle %}
+    <div class="grid gap-6">
+        <!-- Información básica del dispositivo -->
+        <section class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-green-800">{{ detalle.device_name }}</h3>
+                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Activo</span>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-semibold text-gray-700">IP:</span>
+                    <span class="ml-2 text-gray-900 font-mono">{{ detalle.ip_address }}</span>
+                </div>
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a4 4 0 118 0v4m-4 8a2 2 0 100-4 2 2 0 000 4zm0 0v4a2 2 0 002 2h4a2 2 0 002-2v-4"></path>
+                    </svg>
+                    <span class="font-semibold text-gray-700">Registrado:</span>
+                    <span class="ml-2 text-gray-900">{{ detalle.fecha_registro }}</span>
+                </div>
+            </div>
+            
+            <!-- Consumo en tiempo real -->
+            <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 mb-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="font-semibold text-gray-700">Consumo en tiempo real:</span>
+                        <div id="consumo-tiempo-real" class="text-2xl font-bold text-green-700 mt-1">Cargando...</div>
+                    </div>
+                    <button onclick="actualizarConsumoTiempoReal()" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm">
+                        🔄 Actualizar
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Consumo estimado -->
+        <section class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-lg font-semibold text-gray-800">Consumo Estimado</h4>
+                {% if detalle.fuente_consumo == 'Google API' %}
+                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Google API</span>
+                {% elif detalle.fuente_consumo == 'Base de datos local' %}
+                    <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">Base Local</span>
+                {% endif %}
+            </div>
+            
+            {% if detalle.consumo_estimado %}
+                <div class="flex items-center mb-3">
+                    <div class="text-3xl font-bold text-green-700">{{ detalle.consumo_estimado }}</div>
+                    <div class="ml-2 text-gray-600">kWh/día</div>
+                </div>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div class="text-sm text-gray-600">Mensual</div>
+                        <div class="font-semibold text-gray-800">{{ "%.1f"|format(detalle.consumo_estimado * 30) }} kWh</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div class="text-sm text-gray-600">Anual</div>
+                        <div class="font-semibold text-gray-800">{{ "%.0f"|format(detalle.consumo_estimado * 365) }} kWh</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div class="text-sm text-gray-600">Costo/mes</div>
+                        <div class="font-semibold text-green-600">S/ {{ "%.2f"|format(detalle.consumo_estimado * 30 * 0.50) }}</div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.562M15 6.306a7.962 7.962 0 00-6 0m6 0a7.962 7.962 0 016 2.562M9 6.306v.568a7.875 7.875 0 006 0v-.568m0 0a7.962 7.962 0 00-6 0"></path>
+                    </svg>
+                    <p class="text-gray-500">No se pudo obtener información de consumo</p>
+                    <p class="text-sm text-gray-400 mt-1">Fuente: {{ detalle.fuente_consumo }}</p>
+                </div>
+            {% endif %}
+        </section>
+
+        <!-- Información adicional -->
+        {% if detalle.fragmentos %}
+        <section class="bg-white rounded-xl shadow-lg p-6">
+            <h4 class="text-lg font-semibold text-gray-800 mb-4">Información del Dispositivo</h4>
+            <div class="space-y-3">
+                {% for frag in detalle.fragmentos %}
+                <div class="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-400">
+                    <div class="text-sm text-gray-700">{{ frag|safe }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Historial de consumo -->
+        <section class="bg-white rounded-xl shadow-lg p-6">
+            <h4 class="text-lg font-semibold text-gray-800 mb-4">Historial de Consumo Real</h4>
+            {% if detalle.historial %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-green-100">
+                                <th class="py-3 px-4 text-left font-semibold text-green-800">Fecha y Hora</th>
+                                <th class="py-3 px-4 text-left font-semibold text-green-800">Consumo (kWh)</th>
+                                <th class="py-3 px-4 text-left font-semibold text-green-800">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fecha, consumo in detalle.historial %}
+                            <tr class="border-b hover:bg-gray-50 transition-colors">
+                                <td class="py-3 px-4 text-gray-700">{{ fecha }}</td>
+                                <td class="py-3 px-4">
+                                    <span class="font-semibold {% if consumo > 0.1 %}text-red-600{% elif consumo > 0.01 %}text-yellow-600{% else %}text-green-600{% endif %}">
+                                        {{ consumo }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    {% if consumo > 0.1 %}
+                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Alto</span>
+                                    {% elif consumo > 0.01 %}
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Medio</span>
+                                    {% else %}
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Bajo</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <h5 class="text-lg font-medium text-gray-900 mb-2">Sin historial de consumo</h5>
+                    <p class="text-gray-500 mb-4">Los datos aparecerán aquí cuando el dispositivo comience a reportar consumo.</p>
+                    <button onclick="actualizarConsumoTiempoReal()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                        Verificar ahora
+                    </button>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+    
+    <!-- Navegación -->
+    <nav class="mt-8" aria-label="Volver">
+        <a href="{{ url_for('dispositivos') }}" class="inline-flex items-center text-green-700 hover:text-green-800 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Volver a la lista de dispositivos
+        </a>
+    </nav>
+    {% else %}
+    <div class="text-center py-12">
+        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+        </svg>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Selecciona un dispositivo</h3>
+        <p class="text-gray-500">Elige un dispositivo del menú desplegable para ver sus detalles.</p>
+    </div>
+    {% endif %}
+</main>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    let selectedDeviceId = {{ selected_device_id if selected_device_id else 'null' }};
+    
+    function actualizarConsumoTiempoReal() {
+        if (!selectedDeviceId) return;
+        
+        const elemento = document.getElementById('consumo-tiempo-real');
+        elemento.textContent = 'Actualizando...';
+        elemento.className = 'text-2xl font-bold text-gray-500 mt-1';
+        
+        fetch(`/api/consumo_dispositivo/${selectedDeviceId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.consumo_actual !== undefined) {
+                    elemento.textContent = data.consumo_actual + ' kWh';
+                    elemento.className = 'text-2xl font-bold text-green-700 mt-1';
+                } else {
+                    elemento.textContent = 'No disponible';
+                    elemento.className = 'text-2xl font-bold text-gray-500 mt-1';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                elemento.textContent = 'Error de conexión';
+                elemento.className = 'text-2xl font-bold text-red-500 mt-1';
+            });
+    }
+    
+    // Actualizar consumo cada 30 segundos (menos frecuente para mejor rendimiento)
+    if (selectedDeviceId) {
+        actualizarConsumoTiempoReal();
+        setInterval(actualizarConsumoTiempoReal, 30000);
+    }
+    
+    // Precargar datos en background
+    if (selectedDeviceId) {
+        setTimeout(() => {
+            fetch(`/api/consumo_dispositivo/${selectedDeviceId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Cache en localStorage para próximas visitas
+                    localStorage.setItem(`device_${selectedDeviceId}_last_consumption`, JSON.stringify({
+                        value: data.consumo_actual,
+                        timestamp: Date.now()
+                    }));
+                })
+                .catch(() => {});
+        }, 1000);
+    }
+</script>
+{% endblock %}
