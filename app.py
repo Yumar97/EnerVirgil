@@ -1952,6 +1952,24 @@ def test_email():
     # Mostrar formulario de prueba
     return render_template('test_email.html')
 
+@app.route('/debug_oauth')
+def debug_oauth():
+    """
+    Ruta de diagnóstico para verificar la configuración de OAuth
+    """
+    debug_info = {
+        "GOOGLE_CLIENT_ID_exists": bool(os.environ.get('GOOGLE_CLIENT_ID')),
+        "GOOGLE_CLIENT_SECRET_exists": bool(os.environ.get('GOOGLE_CLIENT_SECRET')),
+        "GOOGLE_CLIENT_ID_value": os.environ.get('GOOGLE_CLIENT_ID', 'NO_SET')[:20] + "..." if os.environ.get('GOOGLE_CLIENT_ID') else "NO_SET",
+        "GOOGLE_CLIENT_SECRET_value": os.environ.get('GOOGLE_CLIENT_SECRET', 'NO_SET')[:10] + "..." if os.environ.get('GOOGLE_CLIENT_SECRET') else "NO_SET",
+        "GOOGLE_OAUTH_ENABLED": GOOGLE_OAUTH_ENABLED,
+        "google_object_exists": google is not None,
+        "environment": os.environ.get('FLASK_ENV', 'development'),
+        "all_env_vars": list(os.environ.keys())
+    }
+    
+    return jsonify(debug_info)
+
 @app.route('/test_oauth_endpoints')
 def test_oauth_endpoints():
     """
